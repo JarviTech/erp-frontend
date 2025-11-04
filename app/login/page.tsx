@@ -23,9 +23,20 @@ export default function LoginPage() {
       case 2:
         router.push("/dashboard/manager");
         break;
-      default:
-        router.push("/dashboard/user");
+      case 3:
+        router.push("/dashboard/se");
         break;
+      case 4:
+        router.push("/dashboard/ssm");
+        break;
+      case 5:
+        router.push("/dashboard/nbd");
+        break;
+      case 6:
+        router.push("/dashboard/hr");
+        break;
+      default:
+        router.push("/");
     }
     } catch {
       setMessage("Invalid credentials.");
