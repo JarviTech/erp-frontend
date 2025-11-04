@@ -1,19 +1,22 @@
 'use client';
 import { useState } from "react";
 import { registerUser } from "../../lib/api";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState(0);
+  const [role, setRole] = useState(Number);
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
       await registerUser(email, name, password, role);
       setMessage("User registered successfully!");
+      router.push("/login");
     } catch {
       setMessage("Error registering user.");
     }

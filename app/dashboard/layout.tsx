@@ -1,8 +1,43 @@
 // app/dashboard/layout.tsx
+"use client";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { removeToken } from "@/lib/auth";
 import React from "react";
 import Link from "next/link";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const [authorized, setAuthorized] = useState(false);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (!payload || !payload.role) {
+      removeToken();
+      router.replace("/login");
+      return;
+    }
+    
+    const role = payload.role;
+    // Check access permission based on role
+    if (
+      (role == 1 && pathname.startsWith("/dashboard/admin")) ||
+      (role == 2 && pathname.startsWith("/dashboard/manager")) ||
+      (role == 3  && pathname.startsWith("/dashboard/user"))
+    ) {
+      setAuthorized(true);
+    } else {
+      router.replace("/login"); // redirect to login
+    }
+  }, [pathname, router]);
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -18,6 +53,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link href="/dashboard/user" className="block p-2 rounded hover:bg-blue-700">
             User Dashboard
           </Link>
+          <button
+            onClick={() => {
+              removeToken();
+              router.push("/login");
+            }}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-4 cursor-pointer"
+          >
+            Logout
+          </button>
         </nav>
       </aside>
 
