@@ -51,6 +51,11 @@ export default function ProformaInvoice({username}:{username?:string}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+
   const [party, setParty] = useState<PartyDetails>({
       name: "",
       address: "",
@@ -88,7 +93,7 @@ export default function ProformaInvoice({username}:{username?:string}) {
 
 
 
-  // Load product list (replace with API call)
+  // Load product list
   useEffect(() => {
     const fetchProducts = async () => {
         try {
@@ -160,7 +165,9 @@ export default function ProformaInvoice({username}:{username?:string}) {
     });
 
     // Company Header
+    doc.setTextColor(0, 128, 255); // Sets the color to cyan
     doc.text(selectedCompany?.name || "OUR COMPANY NAME", 14, 20);
+    doc.setTextColor(0, 0, 0); // Sets the color to black
     doc.setFontSize(9);
     doc.text(selectedCompany?.address || "", 14, 26);
     doc.text(`GSTIN: ${selectedCompany?.gstin || ""}`, 14, 32);
@@ -228,7 +235,7 @@ export default function ProformaInvoice({username}:{username?:string}) {
         ],
         body: rows.length > 0 ? rows : [["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]],
         styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [22, 160, 133], textColor: 255, halign: "center" },
+        headStyles: { fillColor: [0, 128, 255], textColor: 255, halign: "center" },
         columnStyles: {
         0: { halign: "center", cellWidth: 10 },
         1: { cellWidth: 40 },
@@ -260,15 +267,22 @@ export default function ProformaInvoice({username}:{username?:string}) {
     doc.text(`Total Before Tax: INR. ${totalBeforeTax}`, 250, finalY, { align: "right" });
     doc.text(`Total Tax:INR. ${totalTaxValue}`, 250, finalY+10, { align: "right" });
     doc.text(`Grand Total: INR. ${grandTotal.toFixed(2)}`, 250, finalY+20, { align: "right" });
-
+    
     // Footer
     doc.setFontSize(9);
     doc.text(`Created by : ${username}`, 14, 200);
     doc.text("For Biophar Lifesciences Pvt. Ltd.", 250, 200, { align: "right" });
 
     // Save PDF
-    doc.save(`Proforma_${invoice.number || "Draft"}.pdf`);
+    doc.save(`Proforma_${invoice.number || "Draft"}.pdf`);  
 };
+
+  const deleteProduct = (index: number) => {
+    const updated = [...invoiceItems];
+    updated.splice(index, 1);
+    setInvoiceItems(updated);
+  };
+
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -336,26 +350,111 @@ export default function ProformaInvoice({username}:{username?:string}) {
         </div>
 
         {/* Product Select */}
-        <label className="block text-sm font-semibold mb-1">Select Product and click ADD button</label>
-        <div className="flex gap-2 mb-4">
-            {products.length === 0 ? (
-            <p className="text-sm text-gray-500">Loading products...</p>
-            ) : (
-                <select
-                    className="border p-2 rounded w-full"
-                    value={selectedProduct?.name || ""}
-                    onChange={handleProductSelect}
-                >
-                    <option value="">Select Product</option>
-                    {products.map((p, i) => (
-                    <option key={i} value={p.name}>
-                        {p.name} &nbsp; &nbsp; - &nbsp;&nbsp;{p.composition}
-                    </option>
-                    ))}
-                </select>
+        <label className="block text-sm font-semibold mb-1">
+          Search Product and click ADD button
+        </label>
+
+        {/* Product Search Autocomplete */}
+        <div className="flex gap-2 mb-4 relative">
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="Type product name..."
+              value={searchTerm}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearchTerm(value);
+                setShowDropdown(true);
+                setSelectedProduct(null);
+                setHighlightedIndex(-1);
+              }}
+              onFocus={() => setShowDropdown(true)}
+              onKeyDown={(e) => {
+                const filtered = products.filter((p) =>
+                  p.name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setHighlightedIndex((prev) =>
+                    prev < filtered.length - 1 ? prev + 1 : prev
+                  );
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+                } else if (e.key === "Enter" && highlightedIndex >= 0) {
+                  e.preventDefault();
+                  const selected = filtered[highlightedIndex];
+                  setSelectedProduct(selected);
+                  setSearchTerm(selected.name);
+                  setShowDropdown(false);
+                } else if (e.key === "Escape") {
+                  setShowDropdown(false);
+                }
+              }}
+              className="border p-2 rounded w-full"
+            />
+
+            {/* Dropdown */}
+            {showDropdown && searchTerm && (
+              <div className="absolute z-10 bg-white border rounded w-full max-h-48 overflow-y-auto shadow">
+                {products
+                  .filter((p) =>
+                    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .slice(0, 10)
+                  .map((p, i) => {
+                    const matchIndex = p.name
+                      .toLowerCase()
+                      .indexOf(searchTerm.toLowerCase());
+                    const before = p.name.slice(0, matchIndex);
+                    const match = p.name.slice(
+                      matchIndex,
+                      matchIndex + searchTerm.length
+                    );
+                    const after = p.name.slice(matchIndex + searchTerm.length);
+
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setSelectedProduct(p);
+                          setSearchTerm(p.name);
+                          setShowDropdown(false);
+                        }}
+                        className={`p-2 cursor-pointer ${
+                          i === highlightedIndex ? "bg-blue-100" : "hover:bg-blue-50"
+                        }`}
+                      >
+                        <span>
+                          {before}
+                          <span className="font-bold text-blue-700">{match}</span>
+                          {after}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {" "}
+                          — {p.composition}
+                        </span>
+                      </div>
+                    );
+                  })}
+                {products.filter((p) =>
+                  p.name.toLowerCase().includes(searchTerm.toLowerCase())
+                ).length === 0 && (
+                  <div className="p-2 text-gray-500 text-sm">No matching products</div>
+                )}
+              </div>
             )}
+          </div>
+
           <button
-            onClick={addProduct}
+            onClick={() => {
+              if (selectedProduct) {
+                addProduct();
+                setSelectedProduct(null);
+                setSearchTerm("");
+                setHighlightedIndex(-1);
+              }
+            }}
             className="bg-blue-600 text-white px-4 py-2 rounded"
           >
             Add
@@ -380,6 +479,7 @@ export default function ProformaInvoice({username}:{username?:string}) {
                   "SGST%",
                   "Tax (₹)",
                   "Total (₹)",
+                  "Action", // 👈 Add this new header
                 ].map((h) => (
                   <th key={h} className="border p-2">
                     {h}
@@ -399,9 +499,7 @@ export default function ProformaInvoice({username}:{username?:string}) {
                     <input
                       type="number"
                       value={item.qty}
-                      onChange={(e) =>
-                        handleItemChange(i, "qty", +e.target.value)
-                      }
+                      onChange={(e) => handleItemChange(i, "qty", +e.target.value)}
                       className="w-16 border rounded text-center"
                     />
                   </td>
@@ -412,11 +510,7 @@ export default function ProformaInvoice({username}:{username?:string}) {
                         type="number"
                         value={(item as any)[tax]}
                         onChange={(e) =>
-                          handleItemChange(
-                            i,
-                            tax as keyof InvoiceItem,
-                            +e.target.value
-                          )
+                          handleItemChange(i, tax as keyof InvoiceItem, +e.target.value)
                         }
                         className="w-16 border rounded text-center"
                       />
@@ -426,8 +520,18 @@ export default function ProformaInvoice({username}:{username?:string}) {
                   <td className="border p-2 font-semibold">
                     ₹{calculateTotal(item).toFixed(2)}
                   </td>
+                  {/* 🗑 Delete button */}
+                  <td className="border p-2">
+                    <button
+                      onClick={() => deleteProduct(i)}
+                      className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
+
             </tbody>
           </table>
         </div>
