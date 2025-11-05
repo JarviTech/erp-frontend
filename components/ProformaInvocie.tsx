@@ -4,6 +4,7 @@ import { useEffect, useState, ChangeEvent } from "react";
 import jsPDF from "jspdf";
 // import "jspdf-autotable";
 import autoTable from "jspdf-autotable";
+import { getAllProducts } from "@/lib/api/product";
 
 declare module "jspdf" {
   interface jsPDF {
@@ -46,7 +47,7 @@ type InvoiceDetails = {
   date: string;
 };
 
-export default function ProformaInvoice() {
+export default function ProformaInvoice({username}:{username?:string}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
@@ -89,26 +90,17 @@ export default function ProformaInvoice() {
 
   // Load product list (replace with API call)
   useEffect(() => {
-    setProducts([
-      {
-        name: "Paracetamol 500mg",
-        composition: "Paracetamol",
-        pack: "10x10",
-        oldMRP: 45,
-        newMRP: 50,
-        rate: 40,
-        hsn: "30045010",
-      },
-      {
-        name: "Amoxicillin 250mg",
-        composition: "Amoxicillin Trihydrate sdfsd sdfsdf sf sdf sfsdf sdf sdfsdfsdf sdf s fsd fsd fs df sdf ",
-        pack: "10x6",
-        oldMRP: 80,
-        newMRP: 85,
-        rate: 70,
-        hsn: "30041011",
-      },
-    ]);
+    const fetchProducts = async () => {
+        try {
+        const data = await getAllProducts();
+        setProducts(data);
+        } catch (err) {
+        console.error("Error fetching products:", err);
+        }
+    };
+
+    fetchProducts();
+
   }, []);
 
   const handleProductSelect = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -264,13 +256,14 @@ export default function ProformaInvoice() {
     }, 0);
 
     doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
     doc.text(`Total Before Tax: INR. ${totalBeforeTax}`, 250, finalY, { align: "right" });
     doc.text(`Total Tax:INR. ${totalTaxValue}`, 250, finalY+10, { align: "right" });
     doc.text(`Grand Total: INR. ${grandTotal.toFixed(2)}`, 250, finalY+20, { align: "right" });
 
     // Footer
     doc.setFontSize(9);
-    doc.text("Thank you for your business!", 14, 200);
+    doc.text(`Created by : ${username}`, 14, 200);
     doc.text("For Biophar Lifesciences Pvt. Ltd.", 250, 200, { align: "right" });
 
     // Save PDF
@@ -345,18 +338,22 @@ export default function ProformaInvoice() {
         {/* Product Select */}
         <label className="block text-sm font-semibold mb-1">Select Product and click ADD button</label>
         <div className="flex gap-2 mb-4">
-          <select
-            className="border p-2 rounded w-full"
-            value={selectedProduct?.name || ""}
-            onChange={handleProductSelect}
-          >
-            <option value="">Select Product</option>
-            {products.map((p, i) => (
-              <option key={i} value={p.name}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+            {products.length === 0 ? (
+            <p className="text-sm text-gray-500">Loading products...</p>
+            ) : (
+                <select
+                    className="border p-2 rounded w-full"
+                    value={selectedProduct?.name || ""}
+                    onChange={handleProductSelect}
+                >
+                    <option value="">Select Product</option>
+                    {products.map((p, i) => (
+                    <option key={i} value={p.name}>
+                        {p.name} &nbsp; &nbsp; - &nbsp;&nbsp;{p.composition}
+                    </option>
+                    ))}
+                </select>
+            )}
           <button
             onClick={addProduct}
             className="bg-blue-600 text-white px-4 py-2 rounded"
