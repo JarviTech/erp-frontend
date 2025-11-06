@@ -8,10 +8,11 @@ function ProductsGrid({ products }: { products: any[] }) {
             key={p.id}
             className="bg-white border rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition"
             >
+                {/* IMAGE BEING SERVED FROM STATIC URL FROM SERVER */}
                 <img
-                    src={p.image}
+                    src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${p.image}`}
                     alt={p.name}
-                    className="h-40 w-full object-cover"
+                    className="h-40 w-full object-fit"
                 />
                 <div className="p-4">
                     <h2 className="text-lg font-semibold">{p.name}</h2>

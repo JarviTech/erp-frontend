@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { sidebarConfig } from "./config/sidebarConfig";
+import { sidebarConfig } from "./dashboard/config/sidebarConfig";
 import { useUserRole } from "../hooks/useUserRole";
 import { Fragment } from "react";
 import { removeToken } from "@/lib/auth";

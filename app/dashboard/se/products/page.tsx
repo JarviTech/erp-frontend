@@ -1,7 +1,7 @@
 // src/app/dashboard/user/products/page.tsx
 "use client";
 
-import ProductsGrid from "@/components/ProductsGrid";
+import ProductsGrid from "@/components/products/ProductsGrid";
 import { useEffect, useState } from "react";
 import { getAllProducts } from "@/lib/api/product";
 
@@ -25,6 +25,7 @@ export default function UserProductsPage() {
       const fetchProducts = async () => {
           try {
           const data = await getAllProducts();
+          console.log(data)
           setProducts(data);
           } catch (err) {
           console.error("Error fetching products:", err);

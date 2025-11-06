@@ -24,7 +24,7 @@ export const sidebarConfig: Record<string, { label: string; path: string; icon?:
   ],
   5: [
     { label: "Dashboard", path: "/dashboard/nbd" },
-    { label: "Leads", path: "/dashboard/nbd/leads" },
+    { label: "Add New Product", path: "/dashboard/nbd/add-new-product" },
   ],
   6: [
     { label: "Dashboard", path: "/dashboard/hr" },
