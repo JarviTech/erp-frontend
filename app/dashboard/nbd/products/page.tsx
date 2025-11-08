@@ -24,15 +24,19 @@ type Product = {
 export default function UserProductsPage() {
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
       const fetchProducts = async () => {
           try {
+          setLoading(true);
           const data = await getAllProducts();
           // console.log(data)
           setProducts(data);
           } catch (err) {
           console.error("Error fetching products:", err);
+          } finally {
+            setLoading(false);
           }
       };
   
@@ -49,7 +53,11 @@ export default function UserProductsPage() {
           <p className="text-slate-500 text-sm mt-1">Browse our available company products.</p>
         </div>
       </header>
-      <ProductsGrid products={products} />
+      {loading ? (
+        <p className="text-center font-bold text-3xl">Loading products...</p>
+      ) : (
+        <ProductsGrid products={products} role={5}/>
+      )}
     </div>
   );
 }
