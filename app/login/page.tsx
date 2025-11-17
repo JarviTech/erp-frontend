@@ -35,6 +35,9 @@ export default function LoginPage() {
       case 6:
         router.push("/dashboard/hr");
         break;
+      case 7:
+        router.push("/dashboard/purchase")
+        break;
       default:
         router.push("/");
     }
