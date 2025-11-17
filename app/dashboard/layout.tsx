@@ -34,7 +34,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       (role == 3  && pathname.startsWith("/dashboard/se")) ||
       (role == 4  && pathname.startsWith("/dashboard/ssm")) ||
       (role == 5  && pathname.startsWith("/dashboard/nbd")) ||
-      (role == 6  && pathname.startsWith("/dashboard/hr")) 
+      (role == 6  && pathname.startsWith("/dashboard/hr")) ||
+      (role == 7  && pathname.startsWith("/dashboard/purchase")) 
     ) {
       setAuthorized(true);
     } else {
