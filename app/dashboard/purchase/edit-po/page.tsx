@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState, ChangeEvent } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { getAllProducts } from "@/lib/api/product";
 
 import CompanySelector from "@/components/dashboard/purchase/CompanySelector";
@@ -10,13 +8,7 @@ import SupplierSelector from "@/components/dashboard/purchase/SupplierSelector";
 import ProductSearch from "@/components/dashboard/purchase/ProductSearch";
 import { Supplier, Company } from "@/types/purchase";
 import savePO from '@/lib/api/purchase_orders'
-import { getNextPONumber } from "@/lib/api/purchase_orders";
 
-declare module "jspdf" {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 type Product = {
   id: number;
@@ -44,7 +36,7 @@ type PurchaseOrderDetails = {
   date: string;
 };
 
-export default function PurchaseOrder({ username }: { username?: string }) {
+export default function EditPO({ username }: { username?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [poItems, setPoItems] = useState<PurchaseItem[]>([]);
@@ -59,7 +51,6 @@ export default function PurchaseOrder({ username }: { username?: string }) {
     number: "",
     date: new Date().toISOString().slice(0, 10),
   });
-  const [nextPONumber, setNextPONumber] = useState<String>();
 
   // Supplier Search states
   const [suppliers] = useState<Supplier[]>([
@@ -95,8 +86,6 @@ export default function PurchaseOrder({ username }: { username?: string }) {
       try {
         const data = await getAllProducts();
         setProducts(data);
-        const nextPONumber = await getNextPONumber();
-        setNextPONumber(nextPONumber)
       } catch (err) {
         console.error("Error fetching products:", err);
       }
@@ -152,10 +141,10 @@ export default function PurchaseOrder({ username }: { username?: string }) {
   const generatePDF = () => {/* same as previous code */};
 
   const handleSavePO = async() => {
-    if (!nextPONumber) {alert("Enter PO Number"); return;}
+    if (!purchaseOrder.number) {alert("Enter PO Number"); return;}
 
     const payload = {
-      po_number: nextPONumber,
+      po_number: purchaseOrder.number,
       po_date: purchaseOrder.date,
       supplier_id: supplier.id,
       company_id: selectedCompany?.id,
@@ -184,18 +173,19 @@ export default function PurchaseOrder({ username }: { username?: string }) {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold mb-4">Purchase Order</h1>
+        <h1 className="text-2xl font-bold mb-4">Edit Purchase Order</h1>
 
         {/* PO Details */}
-        <div className="mb-8 mt-8 flex flex-row gap-8 ">
+        <div className="mt-8 mb-8 flex flex-row gap-8 ">
           <div className="flex gap-4 items-center">
             <label className="font-bold">PO Number</label>
             <input
               type="text"
               placeholder="PO Number"
-              value={nextPONumber?.toString() ?? ""}
-              className="border p-2 rounded bg-gray-200"
-              disabled
+              value={purchaseOrder.number}
+              onChange={(e) => setPurchaseOrder({ ...purchaseOrder, number: e.target.value })}
+              className="border p-2 rounded"
+              required
             />
           </div>
           <div className="flex gap-4 items-center">
