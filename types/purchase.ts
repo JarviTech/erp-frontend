@@ -10,6 +10,9 @@ export type Supplier = {
   name: string;
   address: string;
   gstin: string;
+  email: string;
+  contact: string;
+  pincode: number;
 };
 
 export type Product = {

@@ -35,5 +35,7 @@ export const sidebarConfig: Record<string, { label: string; path: string; icon?:
     { label: "Dashboard", path: "/dashboard/purchase" },
     { label: "Create PO", path: "/dashboard/purchase/create-po" },
     { label: "View All PO's", path: "/dashboard/purchase/view-po" },
+    { label: "Create Supplier", path: "/dashboard/purchase/create-supplier" },
+    { label: "View All Suppliers", path: "/dashboard/purchase/view-suppliers" },
   ],
 };

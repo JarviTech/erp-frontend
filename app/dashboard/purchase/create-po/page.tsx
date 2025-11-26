@@ -11,6 +11,7 @@ import ProductSearch from "@/components/dashboard/purchase/ProductSearch";
 import { Supplier, Company } from "@/types/purchase";
 import savePO from '@/lib/api/purchase_orders'
 import { getNextPONumber } from "@/lib/api/purchase_orders";
+import { fetchSuppliers } from "@/lib/api/suppliers";
 
 declare module "jspdf" {
   interface jsPDF {
@@ -53,6 +54,9 @@ export default function PurchaseOrder({ username }: { username?: string }) {
     name: "",
     address: "",
     gstin: "",
+    email: "",
+    contact: "",
+    pincode: 0,
   });
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrderDetails>({
@@ -62,14 +66,7 @@ export default function PurchaseOrder({ username }: { username?: string }) {
   const [nextPONumber, setNextPONumber] = useState<String>();
 
   // Supplier Search states
-  const [suppliers] = useState<Supplier[]>([
-    { id:1, name: "Sun Pharma Pvt. Ltd.", address: "Mumbai, Maharashtra", gstin: "27AAACS0742A1Z3" },
-    { id:2, name: "Cipla Ltd.", address: "Bangalore, Karnataka", gstin: "29AAACC7247E1Z6" },
-    { id:3, name: "Zydus Healthcare Ltd.", address: "Ahmedabad, Gujarat", gstin: "24AAACZ2295Q1Z1" },
-    { id:4, name: "Dr. Reddy's Laboratories", address: "Hyderabad, Telangana", gstin: "36AAACD7999Q1Z7" },
-  ]);
-
-  
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
   // Product Search states
   const [searchTerm, setSearchTerm] = useState("");
@@ -101,17 +98,28 @@ export default function PurchaseOrder({ username }: { username?: string }) {
         console.error("Error fetching products:", err);
       }
     };
+    const fetchSuppliersData = async () => {
+      try {
+        const data = await fetchSuppliers();
+        setSuppliers(data);
+      } catch (err) {
+        console.error("Error fetching suppliers:", err);
+      }
+    };
+    fetchSuppliersData();
     fetchProducts();
   }, []);
 
   // Reset PO
-  const resetPO = () => {
+  const resetPO = async () => {
     if (window.confirm("Start a new purchase order? Unsaved data will be lost.")) {
-      setSupplier({id:0, name: "", address: "", gstin: "" });
+      setSupplier({id:0, name: "", address: "", gstin: "", email: "", contact: "", pincode: 0});
       setPurchaseOrder({ number: "", date: new Date().toISOString().slice(0, 10) });
       setPoItems([]);
       setSelectedProduct(null);
       setSearchTerm("");
+      const nextPONumber = await getNextPONumber();
+      setNextPONumber(nextPONumber)
     }
   };
 
@@ -149,7 +157,35 @@ export default function PurchaseOrder({ username }: { username?: string }) {
   };
 
   // PDF generation same as before — omitted for brevity
-  const generatePDF = () => {/* same as previous code */};
+  const downloadPO = async (poId: number) => {
+    if (!poId) {
+      alert("PO number not available");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/po/purchase-orders/${poId}/pdf`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to download PDF");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `po_${nextPONumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Error downloading PDF");
+    }
+  };
 
   const handleSavePO = async() => {
     if (!nextPONumber) {alert("Enter PO Number"); return;}
@@ -175,7 +211,8 @@ export default function PurchaseOrder({ username }: { username?: string }) {
       });
     }
 
-    const response = await savePO(payload)
+    const po = await savePO(payload)
+    downloadPO(po.id);
     resetPO()
     return
   };
@@ -236,7 +273,7 @@ export default function PurchaseOrder({ username }: { username?: string }) {
             placeholder="GSTIN"
             value={supplier.gstin}
             onChange={(e) => setSupplier({ ...supplier, gstin: e.target.value })}
-            className="border p-2 rounded"
+            className="border p-2 rounded uppercase"
           />
           
         </div>
@@ -367,9 +404,9 @@ export default function PurchaseOrder({ username }: { username?: string }) {
           <p>Total Tax: ₹{totalTaxValue}</p>
           <p className="text-lg font-bold">Grand Total: ₹{grandTotal}</p>
           <div className="flex gap-3 mt-3">
-            <button onClick={generatePDF} className="bg-green-600 text-white px-6 py-2 rounded">
+            {/* <button onClick={generatePDF} className="bg-green-600 text-white px-6 py-2 rounded">
               Download PO
-            </button>
+            </button> */}
             <button onClick={resetPO} className="bg-red-500 text-white px-6 py-2 rounded">
               New PO
             </button>
