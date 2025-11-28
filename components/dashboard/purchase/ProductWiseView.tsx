@@ -113,7 +113,7 @@ export default function ProductWiseView({ groups }: { groups: any }) {
                 <th className="p-2 border">Supplier</th>
                 <th className="p-2 border">Qty</th>
                 <th className="p-2 border">Rate</th>
-                <th className="p-2 border w-10">Status</th>
+                <th className="p-2 border w-[35%]">Status</th>
               </tr>
             </thead>
             <tbody>

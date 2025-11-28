@@ -5,8 +5,10 @@
 export const sidebarConfig: Record<string, { label: string; path: string; icon?: any }[]> = {
   1: [                                                              
     { label: "Dashboard", path: "/dashboard/admin" },
-    { label: "Manage Users", path: "/dashboard/admin/users" },
-    { label: "Settings", path: "/dashboard/admin/settings" },
+    { label: "Manage Users", path: "/dashboard/admin/user-management" },
+    // { label: "Settings", path: "/dashboard/admin/settings" },
+    { label: "Purchase Orders", path: "/dashboard/admin/view-po" },
+    { label: "Products", path: "/dashboard/admin/products" },
   ],
   2: [
     { label: "Dashboard", path: "/dashboard/manager" },

@@ -1,7 +1,7 @@
 import PoView from '@/components/dashboard/purchase/PoView'
 import React from 'react'
 
-function ViewPurchaseOrderPage() {
+function ViewPOPage() {
   return (
     <div>
       <PoView />
@@ -9,4 +9,4 @@ function ViewPurchaseOrderPage() {
   )
 }
 
-export default ViewPurchaseOrderPage
+export default ViewPOPage
