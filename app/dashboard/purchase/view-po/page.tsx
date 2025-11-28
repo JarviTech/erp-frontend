@@ -22,6 +22,7 @@ type Item = {
 };
 
 type PO = {
+  po_id: number;
   po_number: string;
   po_date: string;
   company_id: string;
@@ -36,7 +37,7 @@ type PO = {
 export default function PurchaseOrdersPage() {
   const [poList, setPoList] = useState<PO[]>([]);
   const [productGroups, setProductGroups] = useState<any>({});
-  const [view, setView] = useState<"po" | "product" | "list">("product");
+  const [view, setView] = useState<"po" | "product" | "list">("po");
 
   const router = useRouter();
 
@@ -48,7 +49,9 @@ export default function PurchaseOrdersPage() {
 
   const fetchPOs = async () => {
     // TEMP: Replace with fetch("/api/...")
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/po/get-all-po`); // or set data manually
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/po/get-all-po`,
+      {cache: "no-store"}
+    ); // or set data manually
     const data = await response.json();
     console.log(data)
     setPoList(data);
@@ -70,7 +73,7 @@ export default function PurchaseOrdersPage() {
       groups[productName].push({
         po_number: po.po_number,
         po_date: po.po_date,
-        supplier: po.supplier.name,
+        supplier: po.supplier?.name,
         qty: item.qty,
         rate: item.rate,
         composition: item.product.composition,
@@ -117,20 +120,20 @@ export default function PurchaseOrdersPage() {
         >
           Product Wise Listing
         </button>
-        <button
+        {/* <button
           onClick={() => setView("list")}
           className={`px-4 py-2 rounded ${
             view === "list" ? "bg-blue-600 text-white" : "bg-gray-200"
           }`}
         >
           PO List Wise
-        </button>
+        </button> */}
       </div>
 
       {/* RENDER VIEWS */}
       {view === "product" && <ProductWiseView groups={productGroups}/>}
       {view === "po" && <POWiseView list={poList} /> }
-      {view === "list" && <ListWiseView list={poList}/>}
+      {/* {view === "list" && <ListWiseView list={poList}/>} */}
     </div>
   );
 }

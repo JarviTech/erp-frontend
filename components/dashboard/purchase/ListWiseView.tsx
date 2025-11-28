@@ -16,6 +16,7 @@ type Item = {
 };
 
 type PO = {
+  po_id : number;
   po_number: string;
   po_date: string;
   company_id: string;

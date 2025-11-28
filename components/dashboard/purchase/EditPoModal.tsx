@@ -15,6 +15,7 @@ type Item = {
 };
 
 type PO = {
+  po_id: number;
   po_number: string;
   po_date: string;
   company_id: string;
@@ -33,31 +34,81 @@ export default function EditPoModal({
   po: PO | null;
   onClose: () => void;
 }) {
+  const [poNumber, setPoNumber] = useState("");
   const [items, setItems] = useState<Item[]>([]);
+  const [grandTotal, setGrandTotal] = useState(0);
 
   useEffect(() => {
     if (po) {
+      setPoNumber(po.po_number);
       setItems(po.items);
+
+      const total = po.items.reduce(
+        (sum, item) => sum + item.qty * item.rate,
+        0
+      );
+      setGrandTotal(total);
     }
   }, [po]);
 
   if (!po) return null;
 
-  const handleItemChange = (index: number, field: "qty" | "rate", value: number) => {
+  const recalcGrandTotal = (updatedItems: Item[]) => {
+    const subtotal = updatedItems.reduce(
+      (sum, item) => sum + item.qty * item.rate,
+      0
+    );
+
+    const gst = subtotal * 0.05; // 5% GST
+    setGrandTotal(subtotal + gst);
+  };
+
+  const handleItemChange = (
+    index: number,
+    field: "qty" | "rate",
+    value: number
+  ) => {
     const updatedItems = [...items];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
     setItems(updatedItems);
+    recalcGrandTotal(updatedItems);
   };
 
   const handleDeleteItem = (index: number) => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
+    recalcGrandTotal(updatedItems);
   };
 
-  const handleSave = () => {
-    // Here you can call your API to save updated PO
-    console.log("Updated items:", items);
-    onClose(); // close modal after saving
+  const handleSave = async () => {
+    const payload = {
+      po_id: po.po_id,
+      po_number: poNumber,
+      grand_total: grandTotal,
+      items: items.map((item) => ({
+        product_id: item.product_id,
+        qty: item.qty,
+        rate: item.rate,
+      })),
+    };
+
+    // console.log("Sending Payload:", payload);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/po/edit-po`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to update PO");
+
+      console.log("PO updated successfully");
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to save PO");
+    }
   };
 
   return (
@@ -71,6 +122,17 @@ export default function EditPoModal({
         </div>
 
         <div className="space-y-3">
+          {/* PO Number */}
+          <div>
+            <label className="font-semibold">PO Number: </label>
+            <input
+              className="border p-1 w-full"
+              value={poNumber}
+              onChange={(e) => setPoNumber(e.target.value)}
+            />
+          </div>
+
+          {/* Supplier */}
           <div>
             <label className="font-semibold">Supplier: </label>
             <input
@@ -80,6 +142,7 @@ export default function EditPoModal({
             />
           </div>
 
+          {/* PO Date */}
           <div>
             <label className="font-semibold">PO Date: </label>
             <input
@@ -89,12 +152,15 @@ export default function EditPoModal({
             />
           </div>
 
+          {/* Line Items */}
           {items.map((item, i) => (
             <div key={item.id} className="p-2 border-b relative">
               <p className="font-semibold mb-2">
                 Product Name: {item.product?.name}
               </p>
+
               <div className="grid grid-cols-2 gap-4 items-center">
+                {/* Qty */}
                 <div className="flex flex-col">
                   <label className="text-sm text-gray-600">Quantity</label>
                   <input
@@ -107,6 +173,7 @@ export default function EditPoModal({
                   />
                 </div>
 
+                {/* Rate */}
                 <div className="flex flex-col">
                   <label className="text-sm text-gray-600">Rate</label>
                   <input
@@ -120,6 +187,7 @@ export default function EditPoModal({
                 </div>
               </div>
 
+              {/* Delete Button */}
               <button
                 onClick={() => handleDeleteItem(i)}
                 className="absolute top-2 right-2 text-red-500 font-bold"
@@ -129,9 +197,15 @@ export default function EditPoModal({
             </div>
           ))}
 
+          {/* Grand Total */}
+          <div className="font-semibold text-right text-lg">
+            Grand Total: ₹{grandTotal}
+          </div>
+
+          {/* Save Button */}
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-green-600 text-white rounded"
+            className="px-4 py-2 bg-green-600 text-white rounded w-full cursor-pointer hover:bg-green-700"
           >
             Save Changes
           </button>
@@ -140,4 +214,3 @@ export default function EditPoModal({
     </div>
   );
 }
-    
