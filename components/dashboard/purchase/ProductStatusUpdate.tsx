@@ -1,6 +1,7 @@
 'useClient';
 import { updateProductStatus } from "@/lib/api/purchase_orders";
 import { useState } from "react";
+import UpdateDeliveryStatus from "./UpdateDeliveryStatus";
 
 export default function ProductStatusUpdate({ item }: { item: any }) {
   const [status, setStatus] = useState(item.status);
@@ -28,7 +29,7 @@ export default function ProductStatusUpdate({ item }: { item: any }) {
       <td className="p-2 border">{item.rate}</td>
 
       {/* Editable Status */}
-      <td className="p-2 border flex items-center gap-2">
+      <td className="p-2 flex items-center gap-2">
         <select
           className={`border py-1 rounded px-2
                 ${status == 'Pending' && 'bg-yellow-500'} 
@@ -44,7 +45,6 @@ export default function ProductStatusUpdate({ item }: { item: any }) {
           <option value="Hold" className="bg-white text-black">Hold</option>
           <option value="Cancelled" className="bg-white text-black">Cancelled</option>
         </select>
-
         <button
           onClick={updateStatus}
           disabled={saving}
@@ -52,6 +52,12 @@ export default function ProductStatusUpdate({ item }: { item: any }) {
         >
           {saving ? "Saving..." : "Save"}
         </button>
+        {/* UPDATE DELIVERY STATUS BUTTON */}
+        <UpdateDeliveryStatus 
+          po_number={item.po_number} 
+          product_id={item.product_id} 
+          product_name={item.product_name}
+        />
       </td>
     </tr>
   );

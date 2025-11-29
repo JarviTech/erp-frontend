@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import EditPoModal from "./EditPoModal";
 import DownloadPo from "./DownloadPo";
+import UpdateDeliveryStatus from "./UpdateDeliveryStatus";
 
 /* ----------------------------------------------------------
     UPDATED PO-WISE VIEW (SHOW PRODUCT DETAILS)
@@ -27,6 +28,7 @@ type PO = {
   po_number: string;
   po_date: string;
   company_id: string;
+  status: string;
   grand_total: number;
   supplier: {
     id: number;
@@ -54,20 +56,36 @@ export default function POWiseView({ list }: { list: PO[] }) {
         {sortedList.map((po, index) => (
           <div key={index} className="border rounded p-4 shadow-sm bg-white">
             {/* PO Header Row */}
-            <div className="flex justify-between items-center mb-3">
+            <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-lg font-semibold">{po.po_number}</h2>
-                <p className="text-sm text-gray-500">
-                  Supplier: <b>{po.supplier.name}</b>
-                </p>
-                <p className="text-sm text-gray-500">
-                  Date: {po.po_date}
-                </p>
+                <div className="flex flex-row gap-12 py-4">
+                  <p className="text-sm text-gray-500">
+                    Supplier: <b>{po.supplier.name}</b>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Date: {po.po_date}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Current Status: <span className="text-green-600">{po.status}</span> 
+                  </p>
+                </div>
               </div>
 
               <div className="text-right">
                 <div className="flex flex-row gap-8">
+
+                  {/* DOWNLOAD PO BUTTON */}
                   <DownloadPo poId={po.po_id} poNumber={po.po_number} />
+
+                  {/* UPDATE DELIVERY STATUS BUTTON */}
+                  <UpdateDeliveryStatus 
+                    po_number={po.po_number} 
+                    product_id={po.items.length > 0 ? po.items[0].product_id : 0} 
+                    product_name={po.items.length > 0 && po.items[0].product ? po.items[0].product.name : ""}
+                  />
+
+                  {/* EDIT PO BUTTON */}
                   <button
                     onClick={() => editPO(po)}
                     className="px-3 py-1 bg-yellow-500 text-white rounded shadow hover:bg-yellow-600 mb-2"
