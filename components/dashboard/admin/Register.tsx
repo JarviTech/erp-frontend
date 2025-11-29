@@ -4,7 +4,7 @@ import { useState } from "react";
 import { registerUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-export default function RegisterPage() {
+export default function RegisterComponent() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState<number | "">(""); // default empty
