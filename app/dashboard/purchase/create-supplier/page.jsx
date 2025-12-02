@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import {createSupplier} from '@/lib/api/suppliers';
+import { createSupplier } from "@/lib/api/suppliers";
 
 export default function CreateSupplier() {
   const [formData, setFormData] = useState({
@@ -9,53 +9,74 @@ export default function CreateSupplier() {
     email: "",
     contact: "",
     gstin: "",
-    pincode: ""
+    pincode: "",
+    categories: []
   });
 
+  const categoryOptions = [
+    "TABLETS",
+    "CAPSULES",
+    "OINTMENTS",
+    "SYRUPS",
+    "INJECTIONS",
+    "POWDERS"
+  ];
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value, checked } = e.target;
+
+    if (name === "categories") {
+      if (checked) {
+        setFormData({
+          ...formData,
+          categories: [...formData.categories, value]
+        });
+      } else {
+        setFormData({
+          ...formData,
+          categories: formData.categories.filter((c) => c !== value)
+        });
+      }
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const payload = {
-        ...formData,
-        pincode: Number(formData.pincode)
+      ...formData,
+      pincode: Number(formData.pincode)
     };
 
-   try{
-
-    const res = await createSupplier(payload);
-    alert("Supplier created successfully with ID: " + res.id);
-    setFormData({
-      name: "",
-      address: "",
-      email: "",
-      contact: "",
-      gstin: "",
-      pincode: ""
-    });
-
-   } catch(error){
-    console.log("Error in dash", error);
-   }
+    try {
+      const res = await createSupplier(payload);
+      alert("Supplier created successfully with ID: " + res.id);
+      setFormData({
+        name: "",
+        address: "",
+        email: "",
+        contact: "",
+        gstin: "",
+        pincode: "",
+        categories: []
+      });
+    } catch (error) {
+      console.log("Error creating supplier:", error);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10">
       <div className="bg-white shadow-2xl rounded-xl p-10 w-full max-w-2xl border border-gray-200">
-        
         <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
           Create Supplier
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Name */}
+          {/* Supplier Name */}
           <div>
             <label className="block font-semibold text-gray-700">Supplier Name</label>
             <input
@@ -91,7 +112,7 @@ export default function CreateSupplier() {
               className="mt-2 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="example@domain.com"
               onChange={handleChange}
-                value={formData.email}
+              value={formData.email}
             />
           </div>
 
@@ -104,7 +125,7 @@ export default function CreateSupplier() {
               className="mt-2 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="+91 9876543210"
               onChange={handleChange}
-                value={formData.contact}
+              value={formData.contact}
             />
           </div>
 
@@ -117,7 +138,7 @@ export default function CreateSupplier() {
               className="mt-2 w-full border rounded-lg px-4 py-2 uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="22AAAAA0000A1Z5"
               onChange={handleChange}
-                value={formData.gstin}
+              value={formData.gstin}
             />
           </div>
 
@@ -130,8 +151,36 @@ export default function CreateSupplier() {
               className="mt-2 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="560001"
               onChange={handleChange}
-                value={formData.pincode}
+              value={formData.pincode}
             />
+          </div>
+
+          {/* Categories Multi-Select */}
+          <div>
+            <label className="block font-semibold text-gray-700 mb-2">Categories</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {categoryOptions.map((cat) => (
+                <label
+                  key={cat}
+                  className={`flex items-center space-x-2 p-2 border rounded-lg cursor-pointer hover:bg-blue-50 ${
+                    formData.categories.includes(cat) ? "bg-blue-100 border-blue-400" : "bg-white"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    name="categories"
+                    value={cat}
+                    checked={formData.categories.includes(cat)}
+                    onChange={handleChange}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                  />
+                  <span className="text-gray-700 font-medium">{cat}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 mt-1">
+              Select one or more categories
+            </p>
           </div>
 
           {/* Submit Button */}
