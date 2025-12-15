@@ -3,6 +3,7 @@
 import { useState } from "react";
 import PendingPOProducts from "@/components/dashboard/purchase/PendingPOProducts";
 import RegisterPage from "@/components/dashboard/admin/Register";
+import Sales_Overview from "@/components/dashboard/admin/Sales_Overview";
 
 export default function AdminDashboard() {
   // Tabs state
@@ -72,7 +73,7 @@ export default function AdminDashboard() {
         return (
           <div className="bg-white p-6 shadow rounded">
             <h2 className="font-semibold text-xl mb-2">Sales Department</h2>
-            <p>Sales performance, leads, and pipelines.</p>
+            <Sales_Overview />
           </div>
         );
       case "Operations":
