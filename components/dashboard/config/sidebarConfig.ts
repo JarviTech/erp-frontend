@@ -19,6 +19,9 @@ export const sidebarConfig: Record<string, { label: string; path: string; icon?:
     { label: "Dashboard", path: "/dashboard/se" },
     { label: "Products", path: "/dashboard/se/products" },
     { label: "Proforma Invoice", path: "/dashboard/se/proforma-invoice" },
+    { label: "Create Customer", path: "/dashboard/se/create-customer" },
+    { label: "Punch Order", path: "/dashboard/se/punch-order" },
+    { label: "Orders", path: "/dashboard/se/pending-orders" },
     ],
   4: [
     { label: "Dashboard", path: "/dashboard/ssm" },
